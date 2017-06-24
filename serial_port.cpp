@@ -92,7 +92,7 @@ initialize_defaults()
 	fd     = -1;
 	status = SERIAL_PORT_CLOSED;
 
-	uart_name = (char*)"/dev/ttyUSB0";
+	uart_name = (char*)"/dev/ttyUSB1";
 	baudrate  = 57600;
 
 	// Start mutex

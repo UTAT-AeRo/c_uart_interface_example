@@ -240,6 +240,7 @@ read_messages()
 
 	// Blocking wait for new data
 	while ( !received_all and !time_to_exit )
+	//while ( !time_to_exit )	
 	{
 		// ----------------------------------------------------------------------
 		//   READ MESSAGE
@@ -252,7 +253,7 @@ read_messages()
 		// ----------------------------------------------------------------------
 		if( success )
 		{
-
+			//printf("Received message\n");
 			// Store message sysid and compid.
 			// Note this doesn't handle multiple message sources.
 			current_messages.sysid  = message.sysid;
@@ -261,6 +262,14 @@ read_messages()
 			// Handle Message ID
 			switch (message.msgid)
 			{
+				case MAVLINK_MSG_ID_ATTITUDE:
+				{
+					//printf("MAVLINK_MSG_ID_ATTITUDE\n");
+					mavlink_msg_attitude_decode(&message, &(current_messages.attitude));
+					current_messages.time_stamps.attitude = get_time_usec();
+					this_timestamps.attitude = current_messages.time_stamps.attitude;
+					break;
+				}
 
 				case MAVLINK_MSG_ID_HEARTBEAT:
 				{
@@ -270,7 +279,6 @@ read_messages()
 					this_timestamps.heartbeat = current_messages.time_stamps.heartbeat;
 					break;
 				}
-
 				case MAVLINK_MSG_ID_SYS_STATUS:
 				{
 					//printf("MAVLINK_MSG_ID_SYS_STATUS\n");
@@ -343,15 +351,6 @@ read_messages()
 					break;
 				}
 
-				case MAVLINK_MSG_ID_ATTITUDE:
-				{
-					//printf("MAVLINK_MSG_ID_ATTITUDE\n");
-					mavlink_msg_attitude_decode(&message, &(current_messages.attitude));
-					current_messages.time_stamps.attitude = get_time_usec();
-					this_timestamps.attitude = current_messages.time_stamps.attitude;
-					break;
-				}
-
 				default:
 				{
 					// printf("Warning, did not handle message id %i\n",message.msgid);
@@ -373,7 +372,7 @@ read_messages()
 //				this_timestamps.position_target_local_ned  &&
 //				this_timestamps.position_target_global_int &&
 //				this_timestamps.highres_imu                &&
-//				this_timestamps.attitude                   &&
+				this_timestamps.attitude                   &&
 				this_timestamps.sys_status
 				;
 
@@ -628,34 +627,33 @@ start()
 	// --------------------------------------------------------------------------
 	//   GET INITIAL POSITION
 	// --------------------------------------------------------------------------
-
+/*
 	// Wait for initial position ned
-	while ( not ( current_messages.time_stamps.local_position_ned &&
-				  current_messages.time_stamps.attitude            )  )
+	while ( not ( 	  current_messages.time_stamps.attitude            )  )
 	{
 		if ( time_to_exit )
 			return;
 		usleep(500000);
 	}
+*/
 
+	while (!time_to_exit)
+	{
 	// copy initial position ned
 	Mavlink_Messages local_data = current_messages;
-	initial_position.x        = local_data.local_position_ned.x;
-	initial_position.y        = local_data.local_position_ned.y;
-	initial_position.z        = local_data.local_position_ned.z;
-	initial_position.vx       = local_data.local_position_ned.vx;
-	initial_position.vy       = local_data.local_position_ned.vy;
-	initial_position.vz       = local_data.local_position_ned.vz;
-	initial_position.yaw      = local_data.attitude.yaw;
-	initial_position.yaw_rate = local_data.attitude.yawspeed;
+	float yaw      = local_data.attitude.yaw;
+	float roll     = local_data.attitude.roll;
+	float pitch    = local_data.attitude.pitch;
+	int timestamp  = local_data.time_stamps.attitude;
 
-	printf("INITIAL POSITION XYZ = [ %.4f , %.4f , %.4f ] \n", initial_position.x, initial_position.y, initial_position.z);
-	printf("INITIAL POSITION YAW = %.4f \n", initial_position.yaw);
-	printf("\n");
+	printf("ANGLES = [ %.4f , %.4f , %.4f ] at %d\n", roll, pitch, yaw, timestamp);
+
+		usleep(500000);
+	}
 
 	// we need this before starting the write thread
 
-
+/*
 	// --------------------------------------------------------------------------
 	//   WRITE THREAD
 	// --------------------------------------------------------------------------
@@ -670,7 +668,7 @@ start()
 
 	// now we're streaming setpoint commands
 	printf("\n");
-
+*/
 
 	// Done!
 	return;
@@ -718,6 +716,7 @@ start_read_thread()
 	}
 	else
 	{
+		printf("STARTING READ THREAD\n");
 		read_thread();
 		return;
 	}
@@ -781,7 +780,7 @@ read_thread()
 	while ( ! time_to_exit )
 	{
 		read_messages();
-		usleep(100000); // Read batches at 10Hz
+		usleep(50000); // Read batches at 20Hz
 	}
 
 	reading_status = false;
