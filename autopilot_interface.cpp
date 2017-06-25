@@ -644,7 +644,7 @@ start()
 	float yaw      = local_data.attitude.yaw;
 	float roll     = local_data.attitude.roll;
 	float pitch    = local_data.attitude.pitch;
-	int timestamp  = local_data.time_stamps.attitude;
+	int timestamp  = local_data.attitude.time_boot_ms;
 
 	printf("ANGLES = [ %.4f , %.4f , %.4f ] at %d\n", roll, pitch, yaw, timestamp);
 
@@ -652,7 +652,7 @@ start()
 	float lat      = (float) local_data.global_position_int.lat / 10000000.0;
 	float lon      = (float) local_data.global_position_int.lon / 10000000.0;
 	float altrel   = (float) local_data.global_position_int.relative_alt / 1000.0;
-	int timestamp_ = local_data.time_stamps.global_position_int;
+	int timestamp_ = local_data.global_position_int.time_boot_ms;
 
 	printf("GPS    = [ %.4f , %.4f , %.4f ] at %d\n", lat, lon, altrel, timestamp_);
 
