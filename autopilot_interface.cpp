@@ -648,6 +648,14 @@ start()
 
 	printf("ANGLES = [ %.4f , %.4f , %.4f ] at %d\n", roll, pitch, yaw, timestamp);
 
+	
+	float lat      = (float) local_data.global_position_int.lat / 10000000.0;
+	float lon      = (float) local_data.global_position_int.lon / 10000000.0;
+	float altrel   = (float) local_data.global_position_int.relative_alt / 1000.0;
+	int timestamp_ = local_data.time_stamps.global_position_int;
+
+	printf("GPS    = [ %.4f , %.4f , %.4f ] at %d\n", lat, lon, altrel, timestamp_);
+
 		usleep(500000);
 	}
 
